@@ -7,8 +7,12 @@ chatbot_bp = Blueprint('chatbot', __name__, url_prefix='/api/chatbot')
 
 # Hugging Face API configuration - GPT-OSS (Free Open Source!)
 HUGGINGFACE_API_KEY = os.getenv('HUGGINGFACE_API_KEY')
-client = InferenceClient(token=HUGGINGFACE_API_KEY) if HUGGINGFACE_API_KEY else None
-GPT_OSS_MODEL = "openai/gpt-oss-20b"
+# Use new Hugging Face endpoint
+client = InferenceClient(
+    token=HUGGINGFACE_API_KEY,
+    base_url="https://api-inference.huggingface.co"
+) if HUGGINGFACE_API_KEY else None
+GPT_OSS_MODEL = "meta-llama/Llama-3.2-3B-Instruct"
 
 
 def get_website_context():
@@ -90,8 +94,8 @@ def call_ai_model(prompt, system_context, conversation_history=None):
             "content": prompt
         })
 
-        # Call Hugging Face GPT-OSS-20B - FREE open source!
-        response = client.chat_completion(
+        # Call Hugging Face Llama 3.2 - FREE open source!
+        response = client.chat.completions.create(
             model=GPT_OSS_MODEL,
             messages=messages,
             max_tokens=200,
