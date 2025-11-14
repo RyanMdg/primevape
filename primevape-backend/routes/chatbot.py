@@ -5,14 +5,15 @@ from huggingface_hub import InferenceClient
 
 chatbot_bp = Blueprint('chatbot', __name__, url_prefix='/api/chatbot')
 
-# Hugging Face API configuration - GPT-OSS (Free Open Source!)
+# Hugging Face API configuration
 HUGGINGFACE_API_KEY = os.getenv('HUGGINGFACE_API_KEY')
-# Use new Hugging Face endpoint
-client = InferenceClient(
-    token=HUGGINGFACE_API_KEY,
-    base_url="https://api-inference.huggingface.co"
-) if HUGGINGFACE_API_KEY else None
 GPT_OSS_MODEL = "meta-llama/Llama-3.2-3B-Instruct"
+
+def get_hf_client():
+    """Get Hugging Face client (lazy initialization)"""
+    if not HUGGINGFACE_API_KEY:
+        return None
+    return InferenceClient(token=HUGGINGFACE_API_KEY)
 
 
 def get_website_context():
@@ -66,9 +67,10 @@ EXAMPLE REDIRECTS FOR OFF-TOPIC QUESTIONS:
 
 
 def call_ai_model(prompt, system_context, conversation_history=None):
-    """Call AI model via Hugging Face GPT-OSS (Free Open Source!)"""
+    """Call AI model via Hugging Face (Free Open Source!)"""
 
     try:
+        client = get_hf_client()
         if not client:
             raise Exception("Hugging Face API key not configured. Please add HUGGINGFACE_API_KEY to your .env file.")
 
