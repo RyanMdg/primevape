@@ -7,7 +7,7 @@ chatbot_bp = Blueprint('chatbot', __name__, url_prefix='/api/chatbot')
 
 # Hugging Face API configuration
 HUGGINGFACE_API_KEY = os.getenv('HUGGINGFACE_API_KEY')
-HF_API_URL = "https://api-inference.huggingface.co/models/meta-llama/Llama-3.2-3B-Instruct/v1/chat/completions"
+HF_API_URL = "https://api-inference.huggingface.co/models/microsoft/Phi-3-mini-4k-instruct"
 
 
 def get_website_context():
@@ -89,6 +89,20 @@ def call_ai_model(prompt, system_context, conversation_history=None):
             "content": prompt
         })
 
+        # Build the prompt from messages
+        full_prompt = ""
+        for msg in messages:
+            role = msg['role']
+            content = msg['content']
+            if role == "system":
+                full_prompt += f"System: {content}\n\n"
+            elif role == "user":
+                full_prompt += f"User: {content}\n"
+            elif role == "assistant":
+                full_prompt += f"Assistant: {content}\n"
+
+        full_prompt += "Assistant:"
+
         # Call Hugging Face API directly
         headers = {
             "Authorization": f"Bearer {HUGGINGFACE_API_KEY}",
@@ -96,17 +110,26 @@ def call_ai_model(prompt, system_context, conversation_history=None):
         }
 
         payload = {
-            "messages": messages,
-            "max_tokens": 200,
-            "temperature": 0.7,
-            "stream": False
+            "inputs": full_prompt,
+            "parameters": {
+                "max_new_tokens": 200,
+                "temperature": 0.7,
+                "return_full_text": False
+            }
         }
 
         response = requests.post(HF_API_URL, headers=headers, json=payload, timeout=30)
         response.raise_for_status()
 
         result = response.json()
-        return result['choices'][0]['message']['content'].strip()
+
+        # Extract response text
+        if isinstance(result, list) and len(result) > 0:
+            return result[0]['generated_text'].strip()
+        elif 'generated_text' in result:
+            return result['generated_text'].strip()
+        else:
+            raise Exception("Unexpected response format from AI service")
 
     except requests.exceptions.Timeout:
         print("HF API timeout")
