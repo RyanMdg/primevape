@@ -3,7 +3,6 @@ import { useState, useEffect } from 'react';
 import { AuthProvider } from './context/AuthContext';
 import Header from './components/Header';
 import Footer from './components/Footer';
-import Chatbot from './components/Chatbot';
 import Home from './pages/Home';
 import Products from './pages/Products';
 import ProductDetail from './pages/ProductDetail';
@@ -12,6 +11,8 @@ import Login from './pages/Login';
 import Register from './pages/Register';
 import Checkout from './pages/Checkout';
 import OrderSuccess from './pages/OrderSuccess';
+import AdminLogin from './pages/admin/AdminLogin';
+import AdminDashboard from './pages/admin/AdminDashboard';
 import './index.css';
 
 function App() {
@@ -87,10 +88,11 @@ function App() {
               <Route path="/register" element={<Register />} />
               <Route path="/checkout" element={<Checkout cart={cart} clearCart={clearCart} />} />
               <Route path="/order-success" element={<OrderSuccess />} />
+              <Route path="/admin/login" element={<AdminLogin />} />
+              <Route path="/admin/dashboard" element={<AdminDashboard />} />
             </Routes>
           </main>
           <Footer />
-          <Chatbot />
         </div>
       </Router>
     </AuthProvider>

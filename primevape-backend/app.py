@@ -35,12 +35,12 @@ def create_app(config_name='development'):
     from routes.products import products_bp
     from routes.auth import auth_bp
     from routes.orders import orders_bp
-    from routes.chatbot import chatbot_bp
+    from routes.admin import admin_bp
 
     app.register_blueprint(products_bp)
     app.register_blueprint(auth_bp)
     app.register_blueprint(orders_bp)
-    app.register_blueprint(chatbot_bp)
+    app.register_blueprint(admin_bp)
 
     # Root endpoint
     @app.route('/')
