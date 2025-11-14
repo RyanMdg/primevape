@@ -1,19 +1,13 @@
 from flask import Blueprint, request, jsonify
 from models import Product
 import os
-from huggingface_hub import InferenceClient
+import requests
 
 chatbot_bp = Blueprint('chatbot', __name__, url_prefix='/api/chatbot')
 
 # Hugging Face API configuration
 HUGGINGFACE_API_KEY = os.getenv('HUGGINGFACE_API_KEY')
-GPT_OSS_MODEL = "meta-llama/Llama-3.2-3B-Instruct"
-
-def get_hf_client():
-    """Get Hugging Face client (lazy initialization)"""
-    if not HUGGINGFACE_API_KEY:
-        return None
-    return InferenceClient(token=HUGGINGFACE_API_KEY)
+HF_API_URL = "https://api-inference.huggingface.co/models/meta-llama/Llama-3.2-3B-Instruct/v1/chat/completions"
 
 
 def get_website_context():
@@ -67,11 +61,10 @@ EXAMPLE REDIRECTS FOR OFF-TOPIC QUESTIONS:
 
 
 def call_ai_model(prompt, system_context, conversation_history=None):
-    """Call AI model via Hugging Face (Free Open Source!)"""
+    """Call AI model via Hugging Face using direct HTTP requests"""
 
     try:
-        client = get_hf_client()
-        if not client:
+        if not HUGGINGFACE_API_KEY:
             raise Exception("Hugging Face API key not configured. Please add HUGGINGFACE_API_KEY to your .env file.")
 
         # Build messages array
@@ -96,19 +89,33 @@ def call_ai_model(prompt, system_context, conversation_history=None):
             "content": prompt
         })
 
-        # Call Hugging Face Llama 3.2 - FREE open source!
-        response = client.chat.completions.create(
-            model=GPT_OSS_MODEL,
-            messages=messages,
-            max_tokens=200,
-            temperature=0.7
-        )
+        # Call Hugging Face API directly
+        headers = {
+            "Authorization": f"Bearer {HUGGINGFACE_API_KEY}",
+            "Content-Type": "application/json"
+        }
 
-        # Extract the response text
-        return response.choices[0].message.content.strip()
+        payload = {
+            "messages": messages,
+            "max_tokens": 200,
+            "temperature": 0.7,
+            "stream": False
+        }
 
+        response = requests.post(HF_API_URL, headers=headers, json=payload, timeout=30)
+        response.raise_for_status()
+
+        result = response.json()
+        return result['choices'][0]['message']['content'].strip()
+
+    except requests.exceptions.Timeout:
+        print("HF API timeout")
+        raise Exception("AI service is taking too long to respond. Please try again.")
+    except requests.exceptions.RequestException as e:
+        error_msg = str(e)
+        print(f"AI Model Error: {error_msg}")
+        raise Exception(f"AI service error: {error_msg}")
     except Exception as e:
-        # Log the error and provide a helpful message
         error_msg = str(e)
         print(f"AI Model Error: {error_msg}")
         raise Exception(f"AI service error: {error_msg}")

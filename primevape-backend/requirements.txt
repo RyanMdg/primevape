@@ -9,5 +9,4 @@ SQLAlchemy>=2.0.35
 email-validator>=2.3.0
 gunicorn==21.2.0
 psycopg2-binary==2.9.11
-huggingface-hub==0.27.0
-openai==1.58.1
+requests==2.31.0
