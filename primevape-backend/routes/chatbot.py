@@ -61,12 +61,58 @@ EXAMPLE REDIRECTS FOR OFF-TOPIC QUESTIONS:
     return context
 
 
+def simple_chatbot_response(prompt):
+    """Simple rule-based chatbot fallback"""
+    prompt_lower = prompt.lower()
+
+    # Greetings
+    if any(word in prompt_lower for word in ['hello', 'hi', 'hey', 'good morning', 'good afternoon']):
+        return "Hello! Welcome to PrimeVape. How can I help you today? I can assist with product recommendations, pricing, shipping, and more!"
+
+    # Product recommendations
+    if any(word in prompt_lower for word in ['recommend', 'suggest', 'best', 'good']):
+        if 'beginner' in prompt_lower or 'start' in prompt_lower:
+            return "For beginners, I recommend the RELX Infinity Pod System (₱1,299). It's easy to use, leak-resistant, and has great flavor. Pair it with our Strawberry Ice E-Liquid for a smooth experience!"
+        return "Our bestsellers are the RELX Infinity Pod System (₱1,299) and Vaporesso XROS 3 (₱899). Both offer great performance and reliability. What type of vaping experience are you looking for?"
+
+    # Pricing
+    if 'price' in prompt_lower or 'cost' in prompt_lower or 'how much' in prompt_lower:
+        return "Our pod systems range from ₱899-₱1,499. E-liquids are ₱299 for 30ml. Accessories start at ₱99. All prices include product quality guarantee. Free shipping on orders over ₱1,000!"
+
+    # Shipping
+    if 'ship' in prompt_lower or 'deliver' in prompt_lower or 'shipping' in prompt_lower:
+        return "We offer nationwide shipping for ₱150 flat rate. Orders are typically delivered within 3-5 business days. We use Cash on Delivery (COD) for payment."
+
+    # Payment
+    if 'payment' in prompt_lower or 'pay' in prompt_lower or 'cod' in prompt_lower:
+        return "We accept Cash on Delivery (COD). Pay when your order arrives at your doorstep. Safe, convenient, and secure!"
+
+    # Stock/availability
+    if 'stock' in prompt_lower or 'available' in prompt_lower or 'in stock' in prompt_lower:
+        return "Most of our products are in stock and ready to ship! Check the product page for real-time stock availability. Our bestsellers are restocked weekly."
+
+    # Specific products
+    if 'relx' in prompt_lower:
+        return "The RELX Infinity Pod System (₱1,299) is our premium choice! Features leak-resistant design, SmartPace vibration alerts, and smooth vapor production. Currently in stock with 25 units available."
+
+    if 'vaporesso' in prompt_lower or 'xros' in prompt_lower:
+        return "The Vaporesso XROS 3 Pod Kit (₱899) is excellent value! It has adjustable airflow, long battery life, and is perfect for both beginners and experienced vapers. 30 units in stock!"
+
+    if 'liquid' in prompt_lower or 'juice' in prompt_lower or 'flavor' in prompt_lower:
+        return "Our e-liquids come in various flavors: Strawberry Ice, Mango Ice, Grape Ice, and Classic Tobacco. All are 30ml with 50mg nicotine salt, priced at ₱299 each!"
+
+    # Default response
+    return "I'm here to help with PrimeVape products! I can assist with product recommendations, pricing (₱299-₱1,499), shipping (₱150 nationwide), payment (COD), and stock availability. What would you like to know?"
+
+
 def call_ai_model(prompt, system_context, conversation_history=None):
-    """Call AI model via Hugging Face using direct HTTP requests"""
+    """Call AI model via Hugging Face using direct HTTP requests with fallback"""
 
     try:
         if not HUGGINGFACE_API_KEY:
-            raise Exception("Hugging Face API key not configured. Please add HUGGINGFACE_API_KEY to your .env file.")
+            # Use simple chatbot if no API key
+            print("No HF API key, using simple chatbot")
+            return simple_chatbot_response(prompt)
 
         # Build messages array
         messages = [
@@ -133,16 +179,18 @@ def call_ai_model(prompt, system_context, conversation_history=None):
             raise Exception("Unexpected response format from AI service")
 
     except requests.exceptions.Timeout:
-        print("HF API timeout")
-        raise Exception("AI service is taking too long to respond. Please try again.")
+        print("HF API timeout, using fallback")
+        return simple_chatbot_response(prompt)
     except requests.exceptions.RequestException as e:
         error_msg = str(e)
-        print(f"AI Model Error: {error_msg}")
-        raise Exception(f"AI service error: {error_msg}")
+        print(f"AI Model Error: {error_msg}, using fallback")
+        # If HF API fails, use simple chatbot
+        return simple_chatbot_response(prompt)
     except Exception as e:
         error_msg = str(e)
-        print(f"AI Model Error: {error_msg}")
-        raise Exception(f"AI service error: {error_msg}")
+        print(f"AI Model Error: {error_msg}, using fallback")
+        # If anything fails, use simple chatbot
+        return simple_chatbot_response(prompt)
 
 
 @chatbot_bp.route('/chat', methods=['POST'])
