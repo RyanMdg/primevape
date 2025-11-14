@@ -7,7 +7,8 @@ chatbot_bp = Blueprint('chatbot', __name__, url_prefix='/api/chatbot')
 
 # Hugging Face API configuration
 HUGGINGFACE_API_KEY = os.getenv('HUGGINGFACE_API_KEY')
-HF_API_URL = "https://api-inference.huggingface.co/models/microsoft/Phi-3-mini-4k-instruct"
+# Using Mistral 7B - available on free Inference API
+HF_API_URL = "https://api-inference.huggingface.co/models/mistralai/Mistral-7B-Instruct-v0.2"
 
 
 def get_website_context():
