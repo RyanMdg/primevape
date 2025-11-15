@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { API_URL } from '../../config';
+import { API_URL } from '../config';
 
 function AdminDashboard() {
   const [activeTab, setActiveTab] = useState('dashboard');

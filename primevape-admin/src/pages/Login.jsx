@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { API_ENDPOINTS } from '../../config';
+import { API_ENDPOINTS } from '../config';
 
 function AdminLogin() {
   const [email, setEmail] = useState('');
