@@ -259,15 +259,15 @@ function AdminDashboard() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-white">
       {/* Header */}
-      <div className="bg-white shadow">
+      <div className="bg-white border-b-2 border-black">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center py-6">
-            <h1 className="text-3xl font-bold text-gray-900">Admin Dashboard</h1>
+            <h1 className="text-3xl font-bold text-black uppercase tracking-wider">Admin Dashboard</h1>
             <button
               onClick={handleLogout}
-              className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition"
+              className="px-4 py-2 bg-black text-white border-2 border-black hover:bg-white hover:text-black transition uppercase tracking-wide font-semibold"
             >
               Logout
             </button>
@@ -277,7 +277,7 @@ function AdminDashboard() {
 
       {/* Tabs */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
-        <div className="border-b border-gray-200">
+        <div className="border-b-2 border-black">
           <nav className="-mb-px flex space-x-8">
             {['dashboard', 'products', 'orders', 'users'].map((tab) => (
               <button
@@ -285,9 +285,9 @@ function AdminDashboard() {
                 onClick={() => setActiveTab(tab)}
                 className={`${
                   activeTab === tab
-                    ? 'border-purple-500 text-purple-600'
-                    : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
-                } whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm capitalize`}
+                    ? 'border-black text-black'
+                    : 'border-transparent text-gray-500 hover:text-black hover:border-gray-300'
+                } whitespace-nowrap py-4 px-1 border-b-2 font-semibold text-sm uppercase tracking-wide`}
               >
                 {tab}
               </button>
@@ -299,21 +299,21 @@ function AdminDashboard() {
         {activeTab === 'dashboard' && stats && (
           <div className="mt-8">
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-              <div className="bg-white rounded-lg shadow p-6">
-                <h3 className="text-gray-500 text-sm font-medium">Total Orders</h3>
-                <p className="text-3xl font-bold text-gray-900 mt-2">{stats.total_orders}</p>
+              <div className="bg-white border-2 border-black p-6">
+                <h3 className="text-gray-600 text-sm font-semibold uppercase tracking-wide">Total Orders</h3>
+                <p className="text-3xl font-bold text-black mt-2">{stats.total_orders}</p>
               </div>
-              <div className="bg-white rounded-lg shadow p-6">
-                <h3 className="text-gray-500 text-sm font-medium">Total Products</h3>
-                <p className="text-3xl font-bold text-gray-900 mt-2">{stats.total_products}</p>
+              <div className="bg-white border-2 border-black p-6">
+                <h3 className="text-gray-600 text-sm font-semibold uppercase tracking-wide">Total Products</h3>
+                <p className="text-3xl font-bold text-black mt-2">{stats.total_products}</p>
               </div>
-              <div className="bg-white rounded-lg shadow p-6">
-                <h3 className="text-gray-500 text-sm font-medium">Total Revenue</h3>
-                <p className="text-3xl font-bold text-gray-900 mt-2">₱{stats.total_revenue.toFixed(2)}</p>
+              <div className="bg-white border-2 border-black p-6">
+                <h3 className="text-gray-600 text-sm font-semibold uppercase tracking-wide">Total Revenue</h3>
+                <p className="text-3xl font-bold text-black mt-2">₱{stats.total_revenue.toFixed(2)}</p>
               </div>
-              <div className="bg-white rounded-lg shadow p-6">
-                <h3 className="text-gray-500 text-sm font-medium">Pending Orders</h3>
-                <p className="text-3xl font-bold text-gray-900 mt-2">{stats.pending_orders}</p>
+              <div className="bg-white border-2 border-black p-6">
+                <h3 className="text-gray-600 text-sm font-semibold uppercase tracking-wide">Pending Orders</h3>
+                <p className="text-3xl font-bold text-black mt-2">{stats.pending_orders}</p>
               </div>
             </div>
           </div>
@@ -323,31 +323,31 @@ function AdminDashboard() {
         {activeTab === 'products' && (
           <div className="mt-8">
             <div className="flex justify-between items-center mb-6">
-              <h2 className="text-2xl font-bold text-gray-900">Products</h2>
+              <h2 className="text-2xl font-bold text-black uppercase tracking-wide">Products</h2>
               <button
                 onClick={() => {
                   setEditingProduct(null);
                   setShowProductModal(true);
                 }}
-                className="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition"
+                className="px-4 py-2 bg-black text-white border-2 border-black hover:bg-white hover:text-black transition uppercase tracking-wide font-semibold"
               >
                 Add New Product
               </button>
             </div>
 
             {loading ? (
-              <div className="text-center py-12">Loading...</div>
+              <div className="text-center py-12 uppercase tracking-wide">Loading...</div>
             ) : (
-              <div className="bg-white shadow overflow-hidden rounded-lg">
-                <table className="min-w-full divide-y divide-gray-200">
-                  <thead className="bg-gray-50">
+              <div className="bg-white border-2 border-black overflow-hidden">
+                <table className="min-w-full">
+                  <thead className="bg-white border-b-2 border-black">
                     <tr>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Image</th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Name</th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Price</th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Stock</th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Category</th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Actions</th>
+                      <th className="px-6 py-3 text-left text-xs font-bold text-black uppercase tracking-wide">Image</th>
+                      <th className="px-6 py-3 text-left text-xs font-bold text-black uppercase tracking-wide">Name</th>
+                      <th className="px-6 py-3 text-left text-xs font-bold text-black uppercase tracking-wide">Price</th>
+                      <th className="px-6 py-3 text-left text-xs font-bold text-black uppercase tracking-wide">Stock</th>
+                      <th className="px-6 py-3 text-left text-xs font-bold text-black uppercase tracking-wide">Category</th>
+                      <th className="px-6 py-3 text-left text-xs font-bold text-black uppercase tracking-wide">Actions</th>
                     </tr>
                   </thead>
                   <tbody className="bg-white divide-y divide-gray-200">
@@ -374,13 +374,13 @@ function AdminDashboard() {
                               setEditingProduct(product);
                               setShowProductModal(true);
                             }}
-                            className="text-indigo-600 hover:text-indigo-900"
+                            className="text-black hover:underline font-semibold uppercase text-xs tracking-wide"
                           >
                             Edit
                           </button>
                           <button
                             onClick={() => handleDeleteProduct(product.id)}
-                            className="text-red-600 hover:text-red-900"
+                            className="text-black hover:underline font-semibold uppercase text-xs tracking-wide"
                           >
                             Delete
                           </button>
