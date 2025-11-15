@@ -22,13 +22,15 @@ def create_app(config_name='development'):
 
     jwt = JWTManager(app)
 
-    # Configure CORS - Allow all origins for development
+    # Configure CORS - Allow all origins
     CORS(app,
-         origins="*",
+         resources={r"/api/*": {"origins": "*"}},
          allow_headers=["Content-Type", "Authorization"],
          expose_headers=["Content-Type", "Authorization"],
          supports_credentials=False,
-         methods=["GET", "POST", "PUT", "DELETE", "OPTIONS"]
+         methods=["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+         send_wildcard=True,
+         always_send=True
     )
 
     # Register blueprints
