@@ -14,7 +14,13 @@ function AdminDashboard() {
   const [editingProduct, setEditingProduct] = useState(null);
   const [editingUser, setEditingUser] = useState(null);
   const [statusFilter, setStatusFilter] = useState('');
+  const [notification, setNotification] = useState(null);
   const navigate = useNavigate();
+
+  const showNotification = (message, type = 'success') => {
+    setNotification({ message, type });
+    setTimeout(() => setNotification(null), 3000);
+  };
 
   // Check if user is admin
   useEffect(() => {
@@ -117,7 +123,7 @@ function AdminDashboard() {
 
   // Product Management
   const handleDeleteProduct = async (id) => {
-    if (!confirm('Are you sure you want to delete this product?')) return;
+    if (!window.confirm('Are you sure you want to delete this product?')) return;
 
     try {
       const response = await fetch(`${API_URL}/api/admin/products/${id}`, {
@@ -125,12 +131,14 @@ function AdminDashboard() {
         headers: getAuthHeaders()
       });
       if (response.ok) {
-        alert('Product deleted successfully');
+        showNotification('Product deleted successfully');
         fetchProducts();
+      } else {
+        showNotification('Failed to delete product', 'error');
       }
     } catch (error) {
       console.error('Error deleting product:', error);
-      alert('Failed to delete product');
+      showNotification('Failed to delete product', 'error');
     }
   };
 
@@ -149,17 +157,17 @@ function AdminDashboard() {
       });
 
       if (response.ok) {
-        alert(`Product ${editingProduct ? 'updated' : 'created'} successfully`);
+        showNotification(`Product ${editingProduct ? 'updated' : 'created'} successfully`);
         setShowProductModal(false);
         setEditingProduct(null);
         fetchProducts();
       } else {
         const data = await response.json();
-        alert(data.error || 'Failed to save product');
+        showNotification(data.error || 'Failed to save product', 'error');
       }
     } catch (error) {
       console.error('Error saving product:', error);
-      alert('Failed to save product');
+      showNotification('Failed to save product', 'error');
     }
   };
 
@@ -173,12 +181,12 @@ function AdminDashboard() {
       });
 
       if (response.ok) {
-        alert('Order status updated successfully');
+        showNotification('Order status updated successfully');
         fetchOrders();
       }
     } catch (error) {
       console.error('Error updating order status:', error);
-      alert('Failed to update order status');
+      showNotification('Failed to update order status', 'error');
     }
   };
 
@@ -192,18 +200,18 @@ function AdminDashboard() {
       });
 
       if (response.ok) {
-        alert('Order deleted successfully');
+        showNotification('Order deleted successfully');
         fetchOrders();
       }
     } catch (error) {
       console.error('Error deleting order:', error);
-      alert('Failed to delete order');
+      showNotification('Failed to delete order', 'error');
     }
   };
 
   // User Management
   const handleDeleteUser = async (id) => {
-    if (!confirm('Are you sure you want to delete this user?')) return;
+    if (!window.confirm('Are you sure you want to delete this user?')) return;
 
     try {
       const response = await fetch(`${API_URL}/api/admin/users/${id}`, {
@@ -211,15 +219,15 @@ function AdminDashboard() {
         headers: getAuthHeaders()
       });
       if (response.ok) {
-        alert('User deleted successfully');
+        showNotification('User deleted successfully');
         fetchUsers();
       } else {
         const data = await response.json();
-        alert(data.error || 'Failed to delete user');
+        showNotification(data.error || 'Failed to delete user', 'error');
       }
     } catch (error) {
       console.error('Error deleting user:', error);
-      alert('Failed to delete user');
+      showNotification('Failed to delete user', 'error');
     }
   };
 
@@ -238,17 +246,17 @@ function AdminDashboard() {
       });
 
       if (response.ok) {
-        alert(`User ${editingUser ? 'updated' : 'created'} successfully`);
+        showNotification(`User ${editingUser ? 'updated' : 'created'} successfully`);
         setShowUserModal(false);
         setEditingUser(null);
         fetchUsers();
       } else {
         const data = await response.json();
-        alert(data.error || 'Failed to save user');
+        showNotification(data.error || 'Failed to save user', 'error');
       }
     } catch (error) {
       console.error('Error saving user:', error);
-      alert('Failed to save user');
+      showNotification('Failed to save user', 'error');
     }
   };
 
@@ -314,6 +322,81 @@ function AdminDashboard() {
               <div className="bg-white border-2 border-black p-6">
                 <h3 className="text-gray-600 text-sm font-semibold uppercase tracking-wide">Pending Orders</h3>
                 <p className="text-3xl font-bold text-black mt-2">{stats.pending_orders}</p>
+              </div>
+            </div>
+
+            {/* Quick Actions */}
+            <div className="mt-8">
+              <h2 className="text-xl font-bold text-black uppercase tracking-wide mb-4">Quick Actions</h2>
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <button
+                  onClick={() => setActiveTab('products')}
+                  className="bg-white border-2 border-black p-4 hover:bg-black hover:text-white transition uppercase tracking-wide font-semibold text-left"
+                >
+                  Manage Products
+                </button>
+                <button
+                  onClick={() => setActiveTab('orders')}
+                  className="bg-white border-2 border-black p-4 hover:bg-black hover:text-white transition uppercase tracking-wide font-semibold text-left"
+                >
+                  View Orders
+                </button>
+                <button
+                  onClick={() => setActiveTab('users')}
+                  className="bg-white border-2 border-black p-4 hover:bg-black hover:text-white transition uppercase tracking-wide font-semibold text-left"
+                >
+                  Manage Users
+                </button>
+              </div>
+            </div>
+
+            {/* Recent Orders */}
+            <div className="mt-8">
+              <h2 className="text-xl font-bold text-black uppercase tracking-wide mb-4">Recent Orders</h2>
+              <div className="bg-white border-2 border-black overflow-hidden">
+                {orders.length === 0 ? (
+                  <div className="text-center py-8 text-gray-600 uppercase tracking-wide">No orders yet</div>
+                ) : (
+                  <table className="min-w-full">
+                    <thead className="bg-white border-b-2 border-black">
+                      <tr>
+                        <th className="px-6 py-3 text-left text-xs font-bold text-black uppercase tracking-wide">Order ID</th>
+                        <th className="px-6 py-3 text-left text-xs font-bold text-black uppercase tracking-wide">Customer</th>
+                        <th className="px-6 py-3 text-left text-xs font-bold text-black uppercase tracking-wide">Total</th>
+                        <th className="px-6 py-3 text-left text-xs font-bold text-black uppercase tracking-wide">Status</th>
+                        <th className="px-6 py-3 text-left text-xs font-bold text-black uppercase tracking-wide">Date</th>
+                      </tr>
+                    </thead>
+                    <tbody className="bg-white divide-y divide-gray-200">
+                      {orders.slice(0, 5).map((order) => (
+                        <tr key={order.id}>
+                          <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                            #{order.id}
+                          </td>
+                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                            {order.user_name}
+                          </td>
+                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                            ₱{order.total_amount.toFixed(2)}
+                          </td>
+                          <td className="px-6 py-4 whitespace-nowrap">
+                            <span className={`px-2 py-1 text-xs font-semibold uppercase ${
+                              order.status === 'delivered' ? 'bg-green-100 text-green-800' :
+                              order.status === 'pending' ? 'bg-yellow-100 text-yellow-800' :
+                              order.status === 'processing' ? 'bg-blue-100 text-blue-800' :
+                              'bg-gray-100 text-gray-800'
+                            }`}>
+                              {order.status}
+                            </span>
+                          </td>
+                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                            {new Date(order.created_at).toLocaleDateString()}
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                )}
               </div>
             </div>
           </div>
@@ -577,6 +660,15 @@ function AdminDashboard() {
             setEditingUser(null);
           }}
         />
+      )}
+
+      {/* Notification Toast */}
+      {notification && (
+        <div className={`fixed top-4 right-4 px-6 py-4 border-2 ${
+          notification.type === 'error' ? 'border-red-600 bg-white text-red-600' : 'border-black bg-black text-white'
+        } uppercase tracking-wide font-semibold z-50 shadow-lg`}>
+          {notification.message}
+        </div>
       )}
     </div>
   );
