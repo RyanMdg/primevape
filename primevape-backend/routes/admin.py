@@ -204,7 +204,12 @@ def get_dashboard_stats():
     try:
         total_orders = Order.query.count()
         total_products = Product.query.count()
-        total_revenue = db.session.query(db.func.sum(Order.total_amount)).scalar() or 0
+
+        # Calculate revenue excluding cancelled orders
+        total_revenue = db.session.query(db.func.sum(Order.total)).filter(
+            Order.status != 'cancelled'
+        ).scalar() or 0
+
         pending_orders = Order.query.filter_by(status='pending').count()
 
         return jsonify({
