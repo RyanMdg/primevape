@@ -8,6 +8,8 @@ function AdminDashboard() {
   const [products, setProducts] = useState([]);
   const [orders, setOrders] = useState([]);
   const [users, setUsers] = useState([]);
+  const [recentOrders, setRecentOrders] = useState([]);
+  const [lowStockProducts, setLowStockProducts] = useState([]);
   const [loading, setLoading] = useState(false);
   const [showProductModal, setShowProductModal] = useState(false);
   const [showUserModal, setShowUserModal] = useState(false);
@@ -44,6 +46,35 @@ function AdminDashboard() {
       }
     } catch (error) {
       console.error('Error fetching stats:', error);
+    }
+  };
+
+  // Fetch recent orders for dashboard
+  const fetchRecentOrders = async () => {
+    try {
+      const response = await fetch(`${API_URL}/api/admin/orders`, {
+        headers: getAuthHeaders()
+      });
+      if (response.ok) {
+        const data = await response.json();
+        setRecentOrders((data.orders || []).slice(0, 5));
+      }
+    } catch (error) {
+      console.error('Error fetching recent orders:', error);
+    }
+  };
+
+  // Fetch low stock products for dashboard
+  const fetchLowStockProducts = async () => {
+    try {
+      const response = await fetch(`${API_URL}/api/products`);
+      if (response.ok) {
+        const data = await response.json();
+        const lowStock = (data.products || []).filter(p => p.stock < 10).slice(0, 5);
+        setLowStockProducts(lowStock);
+      }
+    } catch (error) {
+      console.error('Error fetching products:', error);
     }
   };
 
@@ -106,6 +137,8 @@ function AdminDashboard() {
   useEffect(() => {
     if (activeTab === 'dashboard') {
       fetchStats();
+      fetchRecentOrders();
+      fetchLowStockProducts();
     } else if (activeTab === 'products') {
       fetchProducts();
     } else if (activeTab === 'orders') {
@@ -296,24 +329,155 @@ function AdminDashboard() {
         </div>
 
         {/* Dashboard Tab */}
-        {activeTab === 'dashboard' && stats && (
-          <div className="mt-8">
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-              <div className="bg-white rounded-lg shadow p-6">
-                <h3 className="text-gray-500 text-sm font-medium">Total Orders</h3>
-                <p className="text-3xl font-bold text-gray-900 mt-2">{stats.total_orders}</p>
+        {activeTab === 'dashboard' && (
+          <div className="mt-8 space-y-6">
+            {/* Stats Cards */}
+            {stats && (
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                <div className="bg-gradient-to-br from-purple-500 to-purple-600 rounded-lg shadow-lg p-6 text-white">
+                  <h3 className="text-purple-100 text-sm font-medium">Total Orders</h3>
+                  <p className="text-4xl font-bold mt-2">{stats.total_orders}</p>
+                  <p className="text-purple-100 text-xs mt-2">All time orders</p>
+                </div>
+                <div className="bg-gradient-to-br from-blue-500 to-blue-600 rounded-lg shadow-lg p-6 text-white">
+                  <h3 className="text-blue-100 text-sm font-medium">Total Products</h3>
+                  <p className="text-4xl font-bold mt-2">{stats.total_products}</p>
+                  <p className="text-blue-100 text-xs mt-2">In catalog</p>
+                </div>
+                <div className="bg-gradient-to-br from-green-500 to-green-600 rounded-lg shadow-lg p-6 text-white">
+                  <h3 className="text-green-100 text-sm font-medium">Total Revenue</h3>
+                  <p className="text-4xl font-bold mt-2">₱{stats.total_revenue.toFixed(2)}</p>
+                  <p className="text-green-100 text-xs mt-2">All time earnings</p>
+                </div>
+                <div className="bg-gradient-to-br from-orange-500 to-orange-600 rounded-lg shadow-lg p-6 text-white">
+                  <h3 className="text-orange-100 text-sm font-medium">Pending Orders</h3>
+                  <p className="text-4xl font-bold mt-2">{stats.pending_orders}</p>
+                  <p className="text-orange-100 text-xs mt-2">Awaiting processing</p>
+                </div>
               </div>
-              <div className="bg-white rounded-lg shadow p-6">
-                <h3 className="text-gray-500 text-sm font-medium">Total Products</h3>
-                <p className="text-3xl font-bold text-gray-900 mt-2">{stats.total_products}</p>
+            )}
+
+            {/* Two Column Layout */}
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              {/* Recent Orders */}
+              <div className="bg-white rounded-lg shadow-lg overflow-hidden">
+                <div className="px-6 py-4 bg-purple-50 border-b border-purple-100">
+                  <h3 className="text-lg font-bold text-gray-900">Recent Orders</h3>
+                  <p className="text-sm text-gray-600">Latest customer orders</p>
+                </div>
+                <div className="p-6">
+                  {recentOrders.length > 0 ? (
+                    <div className="space-y-4">
+                      {recentOrders.map((order) => (
+                        <div key={order.id} className="flex items-center justify-between p-4 bg-gray-50 rounded-lg hover:bg-gray-100 transition">
+                          <div className="flex-1">
+                            <p className="font-semibold text-gray-900">Order #{order.id}</p>
+                            <p className="text-sm text-gray-600">{order.customer_name}</p>
+                            <p className="text-xs text-gray-500">{new Date(order.created_at).toLocaleDateString()}</p>
+                          </div>
+                          <div className="text-right">
+                            <p className="font-bold text-gray-900">₱{order.total_amount}</p>
+                            <span className={`inline-block px-2 py-1 text-xs font-semibold rounded-full ${
+                              order.status === 'pending' ? 'bg-yellow-100 text-yellow-800' :
+                              order.status === 'processing' ? 'bg-blue-100 text-blue-800' :
+                              order.status === 'shipped' ? 'bg-purple-100 text-purple-800' :
+                              order.status === 'delivered' ? 'bg-green-100 text-green-800' :
+                              'bg-red-100 text-red-800'
+                            }`}>
+                              {order.status}
+                            </span>
+                          </div>
+                        </div>
+                      ))}
+                      <button
+                        onClick={() => setActiveTab('orders')}
+                        className="w-full mt-4 px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition text-sm font-medium"
+                      >
+                        View All Orders
+                      </button>
+                    </div>
+                  ) : (
+                    <p className="text-gray-500 text-center py-8">No recent orders</p>
+                  )}
+                </div>
               </div>
-              <div className="bg-white rounded-lg shadow p-6">
-                <h3 className="text-gray-500 text-sm font-medium">Total Revenue</h3>
-                <p className="text-3xl font-bold text-gray-900 mt-2">₱{stats.total_revenue.toFixed(2)}</p>
+
+              {/* Low Stock Alert */}
+              <div className="bg-white rounded-lg shadow-lg overflow-hidden">
+                <div className="px-6 py-4 bg-red-50 border-b border-red-100">
+                  <h3 className="text-lg font-bold text-gray-900">Low Stock Alert</h3>
+                  <p className="text-sm text-gray-600">Products running low (less than 10 units)</p>
+                </div>
+                <div className="p-6">
+                  {lowStockProducts.length > 0 ? (
+                    <div className="space-y-4">
+                      {lowStockProducts.map((product) => (
+                        <div key={product.id} className="flex items-center justify-between p-4 bg-red-50 rounded-lg hover:bg-red-100 transition">
+                          <div className="flex items-center flex-1">
+                            <img src={product.image} alt={product.name} className="h-12 w-12 object-cover rounded mr-4" />
+                            <div>
+                              <p className="font-semibold text-gray-900">{product.name}</p>
+                              <p className="text-sm text-gray-600">{product.category}</p>
+                            </div>
+                          </div>
+                          <div className="text-right">
+                            <p className="text-2xl font-bold text-red-600">{product.stock}</p>
+                            <p className="text-xs text-gray-500">units left</p>
+                          </div>
+                        </div>
+                      ))}
+                      <button
+                        onClick={() => setActiveTab('products')}
+                        className="w-full mt-4 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition text-sm font-medium"
+                      >
+                        Manage Inventory
+                      </button>
+                    </div>
+                  ) : (
+                    <div className="text-center py-8">
+                      <p className="text-green-600 font-semibold">All products well stocked!</p>
+                      <p className="text-sm text-gray-500 mt-1">No items below 10 units</p>
+                    </div>
+                  )}
+                </div>
               </div>
-              <div className="bg-white rounded-lg shadow p-6">
-                <h3 className="text-gray-500 text-sm font-medium">Pending Orders</h3>
-                <p className="text-3xl font-bold text-gray-900 mt-2">{stats.pending_orders}</p>
+            </div>
+
+            {/* Quick Actions */}
+            <div className="bg-white rounded-lg shadow-lg p-6">
+              <h3 className="text-lg font-bold text-gray-900 mb-4">Quick Actions</h3>
+              <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+                <button
+                  onClick={() => setActiveTab('products')}
+                  className="p-4 bg-purple-50 hover:bg-purple-100 rounded-lg transition text-left"
+                >
+                  <div className="text-purple-600 font-bold text-lg">Products</div>
+                  <div className="text-sm text-gray-600 mt-1">Manage catalog</div>
+                </button>
+                <button
+                  onClick={() => setActiveTab('orders')}
+                  className="p-4 bg-blue-50 hover:bg-blue-100 rounded-lg transition text-left"
+                >
+                  <div className="text-blue-600 font-bold text-lg">Orders</div>
+                  <div className="text-sm text-gray-600 mt-1">Process orders</div>
+                </button>
+                <button
+                  onClick={() => setActiveTab('users')}
+                  className="p-4 bg-green-50 hover:bg-green-100 rounded-lg transition text-left"
+                >
+                  <div className="text-green-600 font-bold text-lg">Users</div>
+                  <div className="text-sm text-gray-600 mt-1">Manage accounts</div>
+                </button>
+                <button
+                  onClick={() => {
+                    setEditingProduct(null);
+                    setShowProductModal(true);
+                  }}
+                  className="p-4 bg-orange-50 hover:bg-orange-100 rounded-lg transition text-left"
+                >
+                  <div className="text-orange-600 font-bold text-lg">Add Product</div>
+                  <div className="text-sm text-gray-600 mt-1">Create new item</div>
+                </button>
               </div>
             </div>
           </div>
